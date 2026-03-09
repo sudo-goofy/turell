@@ -104,6 +104,33 @@
             cursor: grabbing;
         }
 
+        /* Halo-Effekt beim Greifen (Feedback auf großen Touchscreens) */
+        .orb::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(1);
+            border: 1.5px solid rgba(255, 255, 255, 0);
+            box-shadow: 0 0 0 rgba(255, 255, 255, 0);
+            transition: transform 0.4s cubic-bezier(0.2, 1, 0.3, 1),
+                        border-color 0.4s ease,
+                        box-shadow 0.4s ease,
+                        opacity 0.4s ease;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        .orb.grabbed::after {
+            transform: translate(-50%, -50%) scale(1.35);
+            border-color: rgba(255, 255, 255, 0.07);
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.04);
+            opacity: 1;
+        }
+
         /* Aktivierte Farben (Erwachen durch Berührung) */
         .orb.active-r {
             background: radial-gradient(circle, rgba(var(--color-r), 0.9) 0%, rgba(var(--color-r), 0) var(--orb-fade));
@@ -613,6 +640,9 @@
 
                 orb.setPointerCapture(e.pointerId);
 
+                // Halo-Feedback
+                orb.classList.add('grabbed');
+
                 // Deaktiviere sanfte Transitionen fürs flüssige Ziehen
                 orb.style.transition = 'background 0s, color 0s';
             });
@@ -668,6 +698,9 @@
                 drag.data.wasJustDragged = true;
             }
             orb.releasePointerCapture(e.pointerId);
+
+            // Halo entfernen
+            orb.classList.remove('grabbed');
 
             drag.data.isDragging = false;
             activeDrags.delete(e.pointerId);
