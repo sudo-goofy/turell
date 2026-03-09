@@ -91,11 +91,13 @@
             font-family: 'Funnel Sans', sans-serif;
             font-weight: 400;
             letter-spacing: 0.3rem;
-            transform: translate(-50%, -50%);
-            transition: background var(--transition-soft), color var(--transition-soft), transform 0.1s ease-out;
+            left: 0;
+            top: 0;
+            transform: translate3d(0px, 0px, 0);
+            transition: background var(--transition-soft), color var(--transition-soft);
             cursor: grab;
             z-index: 5;
-            will-change: left, top, transform;
+            will-change: transform;
         }
 
         .orb:active {
@@ -587,8 +589,9 @@
 
         orbData.forEach((data, index) => {
             const orb = data.el;
-            orb.style.left = `${data.x}px`;
-            orb.style.top = `${data.y}px`;
+            const hw = orb.offsetWidth / 2 || 0;
+            const hh = orb.offsetHeight / 2 || 0;
+            orb.style.transform = `translate3d(${data.x - hw}px, ${data.y - hh}px, 0)`;
 
             // Pointer Events (unterstützt Touch, Maus und Stift nahtlos)
             orb.addEventListener('pointerdown', (e) => {
@@ -612,7 +615,7 @@
                 orb.setPointerCapture(e.pointerId);
 
                 // Deaktiviere sanfte Transitionen fürs flüssige Ziehen
-                orb.style.transition = 'none';
+                orb.style.transition = 'background 0s, color 0s';
             });
         });
 
@@ -633,8 +636,9 @@
             draggedOrbData.x = e.clientX + draggedOrbData.offsetX;
             draggedOrbData.y = e.clientY + draggedOrbData.offsetY;
 
-            draggedOrbData.el.style.left = `${draggedOrbData.x}px`;
-            draggedOrbData.el.style.top = `${draggedOrbData.y}px`;
+            const hw = draggedOrbData.el.offsetWidth / 2;
+            const hh = draggedOrbData.el.offsetHeight / 2;
+            draggedOrbData.el.style.transform = `translate3d(${draggedOrbData.x - hw}px, ${draggedOrbData.y - hh}px, 0)`;
         }, { passive: false });
 
         window.addEventListener('pointerup', (e) => {
@@ -658,7 +662,7 @@
             }
 
             // Transitionen reaktivieren, damit Überblendungen weich bleiben
-            orb.style.transition = 'background 1.5s ease, color 1.5s ease, transform 0.1s ease-out';
+            orb.style.transition = 'background 1.5s ease, color 1.5s ease';
             if (hasMoved) {
                 draggedOrbData.wasJustDragged = true;
             }
@@ -741,9 +745,9 @@
                 // Subtile Rotation
                 const rot = Math.sin(t * data.rotFreq + data.rotPhase) * data.rotAmp;
 
-                data.el.style.left = `${data.x}px`;
-                data.el.style.top = `${data.y}px`;
-                data.el.style.transform = `translate(-50%, -50%) scale(${breathe.toFixed(4)}) rotate(${rot.toFixed(2)}deg)`;
+                const hw = data.el.offsetWidth / 2;
+                const hh = data.el.offsetHeight / 2;
+                data.el.style.transform = `translate3d(${(data.x - hw).toFixed(1)}px, ${(data.y - hh).toFixed(1)}px, 0) scale(${breathe.toFixed(4)}) rotate(${rot.toFixed(2)}deg)`;
             });
 
             requestAnimationFrame(animateOrbs);
