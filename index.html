@@ -760,6 +760,44 @@
         const targetCode = "8A2BE2"; // Die Lösung des Rätsels
         const display = document.getElementById('hex-display');
 
+        // Audio-Kontext für Tastentöne
+        let audioCtx = null;
+        document.addEventListener('pointerdown', () => {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }, { once: true });
+
+        function playKeySound(type) {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'error') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.2);
+            } else if (type === 'del') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.1);
+            } else {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800 + Math.random() * 200, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.1);
+            }
+        }
+
         function updateDisplay() {
             // Formatiert den String so: # 8 A 2 _ _ _
             let formatted = currentInput.padEnd(6, '_').split('').join(' ');
@@ -768,6 +806,7 @@
 
         function pressKey(char) {
             if (currentInput.length < 6) {
+                playKeySound('key');
                 currentInput += char;
                 updateDisplay();
                 if (currentInput.length === 6) checkCode();
@@ -776,6 +815,7 @@
 
         function deleteKey() {
             if (currentInput.length > 0) {
+                playKeySound('del');
                 currentInput = currentInput.slice(0, -1);
                 updateDisplay();
             }
@@ -796,6 +836,7 @@
             if (currentInput === targetCode) {
                 triggerWowEffect();
             } else {
+                playKeySound('error');
                 display.classList.add('error');
                 display.addEventListener('animationend', () => {
                     display.classList.remove('error');
