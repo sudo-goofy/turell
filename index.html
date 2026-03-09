@@ -74,12 +74,15 @@
             transition: background 1.5s ease, color 1.5s ease, transform 0.1s ease-out;
             cursor: grab;
             z-index: 5;
-            animation: breathe 6s infinite alternate;
+            animation: breathe 8s cubic-bezier(0.42, 0, 0.58, 1) infinite;
         }
 
         @keyframes breathe {
-            0% { transform: translate(-50%, -50%) scale(1); }
-            100% { transform: translate(-50%, -50%) scale(1.05); }
+            0%   { transform: translate(-50%, -50%) scale(1); }
+            30%  { transform: translate(-50%, -50%) scale(1.04); }
+            50%  { transform: translate(-50%, -50%) scale(1.015); }
+            70%  { transform: translate(-50%, -50%) scale(1.055); }
+            100% { transform: translate(-50%, -50%) scale(1); }
         }
 
         .orb:active { cursor: grabbing; }
@@ -277,14 +280,6 @@
         }
         body.shake { animation: shake 0.5s ease-out; }
 
-        /* Partikel */
-        .particle {
-            position: fixed;
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 95;
-        }
-
         /* Pause/Play Button */
         #pause-btn {
             position: absolute;
@@ -399,18 +394,31 @@
         ];
 
         // Daten für die kontinuierliche Bewegung jedes Orbs
+        // (Organische Drift mit überlagerten Sinuswellen statt linearer Geschwindigkeit)
         const orbData = Array.from(orbs).map((orb, index) => {
-            const angle = Math.random() * Math.PI * 2;
-            const speed = 0.3 + Math.random() * 0.5; // Sanfte, langsame Geschwindigkeit
             return {
                 el: orb,
                 x: positions[index].x,
                 y: positions[index].y,
-                vx: Math.cos(angle) * speed,
-                vy: Math.sin(angle) * speed,
+                // Mehrere Frequenz-Schichten für organische Drift
+                freqX1: 0.00025 + Math.random() * 0.0003,
+                freqY1: 0.00020 + Math.random() * 0.0003,
+                freqX2: 0.00060 + Math.random() * 0.0005,
+                freqY2: 0.00055 + Math.random() * 0.0005,
+                ampX1: 40 + Math.random() * 60,
+                ampY1: 30 + Math.random() * 50,
+                ampX2: 10 + Math.random() * 25,
+                ampY2: 10 + Math.random() * 20,
+                phaseX1: Math.random() * Math.PI * 2,
+                phaseY1: Math.random() * Math.PI * 2,
+                phaseX2: Math.random() * Math.PI * 2,
+                phaseY2: Math.random() * Math.PI * 2,
+                baseX: positions[index].x,
+                baseY: positions[index].y,
                 isDragging: false,
                 offsetX: 0,
-                offsetY: 0
+                offsetY: 0,
+                wasJustDragged: false
             };
         });
 
@@ -447,7 +455,6 @@
                 
                 // Deaktiviere sanfte Transitionen fürs flüssige Ziehen
                 orb.style.transition = 'none';
-                orb.style.animation = 'none';
             });
         });
 
@@ -462,6 +469,8 @@
             const dy = e.clientY - dragStartY;
             if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
                 hasMoved = true;
+                // Animation erst beim tatsächlichen Ziehen stoppen
+                draggedOrbData.el.style.animation = 'none';
             }
 
             // Positioniere mit Offset
@@ -494,47 +503,69 @@
 
             // Transitionen reaktivieren, damit Überblendungen weich bleiben
             orb.style.transition = 'background 1.5s ease, color 1.5s ease, transform 0.1s ease-out';
-            orb.style.animation = 'breathe 6s infinite alternate';
+            if (hasMoved) {
+                orb.style.animation = 'breathe 8s cubic-bezier(0.42, 0, 0.58, 1) infinite';
+                draggedOrbData.wasJustDragged = true;
+            }
             orb.releasePointerCapture(e.pointerId);
             
             draggedOrbData.isDragging = false;
             draggedOrbData = null;
         });
 
+        let driftTime = performance.now();
+
         // Animations-Schleife für die kontinuierliche Bewegung
-        function animateOrbs() {
+        function animateOrbs(now) {
             if (isWon) return;
 
-            orbData.forEach(data => {
-                if (data.isDragging || isPaused) return; // Nicht bewegen, wenn der Nutzer es festhält
+            if (!isPaused) driftTime = now;
 
-                data.x += data.vx;
-                data.y += data.vy;
+            orbData.forEach(data => {
+                if (data.isDragging) return;
+
+                // Nach dem Loslassen: Base-Position auf aktuelle Position setzen
+                if (data.wasJustDragged) {
+                    data.baseX = data.x;
+                    data.baseY = data.y;
+                    // Phasen synchronisieren damit kein Sprung entsteht
+                    data.phaseX1 = -data.freqX1 * driftTime;
+                    data.phaseY1 = -data.freqY1 * driftTime;
+                    data.phaseX2 = -data.freqX2 * driftTime;
+                    data.phaseY2 = -data.freqY2 * driftTime;
+                    data.wasJustDragged = false;
+                }
+
+                if (isPaused) return;
+
+                const t = driftTime;
+
+                // Organische Drift: Überlagerte Sinuswellen (ähnlich wie Perlin-Noise)
+                let targetX = data.baseX
+                    + Math.sin(t * data.freqX1 + data.phaseX1) * data.ampX1
+                    + Math.sin(t * data.freqX2 + data.phaseX2) * data.ampX2;
+                let targetY = data.baseY
+                    + Math.sin(t * data.freqY1 + data.phaseY1) * data.ampY1
+                    + Math.cos(t * data.freqY2 + data.phaseY2) * data.ampY2;
 
                 // Dynamischer Radius basierend auf der aktuellen Fenstergröße (wg. 45vmin im CSS)
                 const radius = data.el.offsetWidth / 2;
-                
-                // Abprallen an den horizontalen Rändern
-                if (data.x < radius) { 
-                    data.x = radius; 
-                    data.vx *= -1; 
-                } else if (data.x > window.innerWidth - radius) { 
-                    data.x = window.innerWidth - radius; 
-                    data.vx *= -1; 
-                }
 
-                // Abprallen an den vertikalen Rändern
+                // Sanftes Abfedern an den Rändern (weiche Begrenzung statt harter Praller)
+                const margin = radius;
+                const softZone = radius * 0.5;
+                if (targetX < margin) targetX = margin + (targetX - margin) * 0.1;
+                if (targetX > window.innerWidth - margin) targetX = window.innerWidth - margin - (window.innerWidth - margin - targetX) * 0.1;
+                if (targetY < margin) targetY = margin + (targetY - margin) * 0.1;
+
                 // Orbs dürfen bis zu 40% ihres Durchmessers ins Keyboard ragen
                 const uiEl = document.getElementById('ui');
                 const uiTop = uiEl.getBoundingClientRect().top;
-                const maxY = uiTop - radius + radius * 0.8; // 40% des Durchmessers Überlappung
-                if (data.y < radius) { 
-                    data.y = radius; 
-                    data.vy *= -1; 
-                } else if (data.y > maxY) { 
-                    data.y = maxY; 
-                    data.vy *= -1; 
-                }
+                const maxY = uiTop - radius + radius * 0.8;
+                if (targetY > maxY) targetY = maxY - (targetY - maxY) * 0.1;
+
+                data.x = targetX;
+                data.y = targetY;
 
                 data.el.style.left = `${data.x}px`;
                 data.el.style.top = `${data.y}px`;
