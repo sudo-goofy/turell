@@ -582,10 +582,8 @@
             };
         });
 
-        let draggedOrbData = null;
-        let dragStartX = 0;
-        let dragStartY = 0;
-        let hasMoved = false;
+        // Multi-Touch: Jeder Finger (pointerId) wird seinem Orb zugeordnet
+        const activeDrags = new Map(); // pointerId -> { data, startX, startY, hasMoved }
 
         orbData.forEach((data, index) => {
             const orb = data.el;
@@ -600,17 +598,18 @@
                 // Hint ausblenden bei der ersten Berührung
                 hint.style.opacity = '0';
 
-                draggedOrbData = data;
                 data.isDragging = true;
-
-                // Für Klick-vs-Drag-Erkennung
-                dragStartX = e.clientX;
-                dragStartY = e.clientY;
-                hasMoved = false;
 
                 // Berechne den Offset, damit das Element beim Greifen nicht zum Cursor springt
                 data.offsetX = data.x - e.clientX;
                 data.offsetY = data.y - e.clientY;
+
+                activeDrags.set(e.pointerId, {
+                    data,
+                    startX: e.clientX,
+                    startY: e.clientY,
+                    hasMoved: false
+                });
 
                 orb.setPointerCapture(e.pointerId);
 
@@ -621,33 +620,35 @@
 
         // Dragging Logik auf dem gesamten Fenster
         window.addEventListener('pointermove', (e) => {
-            if (!draggedOrbData || isWon) return;
+            const drag = activeDrags.get(e.pointerId);
+            if (!drag || isWon) return;
             // Verhindert Standardverhalten wie Scrollen beim Ziehen
             e.preventDefault();
 
             // Überprüfe, ob es ein Drag oder nur ein Klick ist (10px Toleranz für ungenaue Finger auf Touch)
-            const dx = e.clientX - dragStartX;
-            const dy = e.clientY - dragStartY;
+            const dx = e.clientX - drag.startX;
+            const dy = e.clientY - drag.startY;
             if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
-                hasMoved = true;
+                drag.hasMoved = true;
             }
 
             // Positioniere mit Offset
-            draggedOrbData.x = e.clientX + draggedOrbData.offsetX;
-            draggedOrbData.y = e.clientY + draggedOrbData.offsetY;
+            drag.data.x = e.clientX + drag.data.offsetX;
+            drag.data.y = e.clientY + drag.data.offsetY;
 
-            const hw = draggedOrbData.el.offsetWidth / 2;
-            const hh = draggedOrbData.el.offsetHeight / 2;
-            draggedOrbData.el.style.transform = `translate3d(${draggedOrbData.x - hw}px, ${draggedOrbData.y - hh}px, 0)`;
+            const hw = drag.data.el.offsetWidth / 2;
+            const hh = drag.data.el.offsetHeight / 2;
+            drag.data.el.style.transform = `translate3d(${drag.data.x - hw}px, ${drag.data.y - hh}px, 0)`;
         }, { passive: false });
 
         window.addEventListener('pointerup', (e) => {
-            if (!draggedOrbData || isWon) return;
+            const drag = activeDrags.get(e.pointerId);
+            if (!drag || isWon) return;
 
-            const orb = draggedOrbData.el;
+            const orb = drag.data.el;
 
             // Wenn es nur ein kurzer Klick ohne signifikante Bewegung war: Zustand umschalten (An/Aus)
-            if (!hasMoved) {
+            if (!drag.hasMoved) {
                 const colorClass = orb.dataset.color;
                 if (colorClass) {
                     if (orb.classList.contains(colorClass)) {
@@ -663,13 +664,13 @@
 
             // Transitionen reaktivieren, damit Überblendungen weich bleiben
             orb.style.transition = 'background 1.5s ease, color 1.5s ease';
-            if (hasMoved) {
-                draggedOrbData.wasJustDragged = true;
+            if (drag.hasMoved) {
+                drag.data.wasJustDragged = true;
             }
             orb.releasePointerCapture(e.pointerId);
 
-            draggedOrbData.isDragging = false;
-            draggedOrbData = null;
+            drag.data.isDragging = false;
+            activeDrags.delete(e.pointerId);
         });
 
         let driftTime = performance.now();
