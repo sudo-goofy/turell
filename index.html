@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
     <meta charset="UTF-8">
     <!-- Wichtig für Touch-Displays: Verhindert Zoomen und Skalieren -->
@@ -35,7 +36,8 @@
             -webkit-user-select: none;
         }
 
-        body, html {
+        body,
+        html {
             margin: 0;
             padding: 0;
             width: 100vw;
@@ -48,7 +50,10 @@
 
         #ambient-bg {
             position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background: radial-gradient(circle at 50% 50%, var(--color-bg-ambient) 0%, #000 100%);
             transition: background 3s cubic-bezier(0.25, 1, 0.5, 1);
             z-index: 1;
@@ -76,7 +81,7 @@
             max-width: var(--orb-max);
             max-height: var(--orb-max);
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(120,120,120,0.5) 0%, rgba(120,120,120,0) var(--orb-fade));
+            background: radial-gradient(circle, rgba(120, 120, 120, 0.5) 0%, rgba(120, 120, 120, 0) var(--orb-fade));
             mix-blend-mode: screen;
             display: flex;
             justify-content: center;
@@ -93,12 +98,28 @@
             will-change: left, top, transform;
         }
 
-        .orb:active { cursor: grabbing; }
+        .orb:active {
+            cursor: grabbing;
+        }
 
         /* Aktivierte Farben (Erwachen durch Berührung) */
-        .orb.active-r { background: radial-gradient(circle, rgba(var(--color-r),0.9) 0%, rgba(var(--color-r),0) var(--orb-fade)); color: rgba(var(--color-text),0.9); text-shadow: 0 0 20px rgba(var(--color-r),0.8); }
-        .orb.active-g { background: radial-gradient(circle, rgba(var(--color-g),0.9) 0%, rgba(var(--color-g),0) var(--orb-fade)); color: rgba(var(--color-text),0.9); text-shadow: 0 0 20px rgba(var(--color-g),0.8); }
-        .orb.active-b { background: radial-gradient(circle, rgba(var(--color-b),0.9) 0%, rgba(var(--color-b),0) var(--orb-fade)); color: rgba(var(--color-text),0.9); text-shadow: 0 0 20px rgba(var(--color-b),0.8); }
+        .orb.active-r {
+            background: radial-gradient(circle, rgba(var(--color-r), 0.9) 0%, rgba(var(--color-r), 0) var(--orb-fade));
+            color: rgba(var(--color-text), 0.9);
+            text-shadow: 0 0 20px rgba(var(--color-r), 0.8);
+        }
+
+        .orb.active-g {
+            background: radial-gradient(circle, rgba(var(--color-g), 0.9) 0%, rgba(var(--color-g), 0) var(--orb-fade));
+            color: rgba(var(--color-text), 0.9);
+            text-shadow: 0 0 20px rgba(var(--color-g), 0.8);
+        }
+
+        .orb.active-b {
+            background: radial-gradient(circle, rgba(var(--color-b), 0.9) 0%, rgba(var(--color-b), 0) var(--orb-fade));
+            color: rgba(var(--color-text), 0.9);
+            text-shadow: 0 0 20px rgba(var(--color-b), 0.8);
+        }
 
         /* Hint-Orb: Startet neutral wie die anderen */
         .orb.hint-orb {
@@ -111,9 +132,9 @@
 
         /* Hint-Orb aktiviert: Sanftes Weiß */
         .orb.active-hint {
-            background: radial-gradient(circle, rgba(var(--color-text),0.6) 0%, rgba(var(--color-text),0) var(--orb-fade));
-            color: rgba(var(--color-text),0.85);
-            text-shadow: 0 0 15px rgba(var(--color-text),0.4);
+            background: radial-gradient(circle, rgba(var(--color-text), 0.6) 0%, rgba(var(--color-text), 0) var(--orb-fade));
+            color: rgba(var(--color-text), 0.85);
+            text-shadow: 0 0 15px rgba(var(--color-text), 0.4);
         }
 
         /* Benutzeroberfläche (Hex-Eingabe) */
@@ -145,14 +166,37 @@
         }
 
         @keyframes inputShake {
-            0%   { transform: translateX(0); }
-            15%  { transform: translateX(-12px); }
-            30%  { transform: translateX(10px); }
-            45%  { transform: translateX(-6px); }
-            60%  { transform: translateX(5px); }
-            75%  { transform: translateX(-2px); }
-            90%  { transform: translateX(1px); }
-            100% { transform: translateX(0); }
+            0% {
+                transform: translateX(0);
+            }
+
+            15% {
+                transform: translateX(-12px);
+            }
+
+            30% {
+                transform: translateX(10px);
+            }
+
+            45% {
+                transform: translateX(-6px);
+            }
+
+            60% {
+                transform: translateX(5px);
+            }
+
+            75% {
+                transform: translateX(-2px);
+            }
+
+            90% {
+                transform: translateX(1px);
+            }
+
+            100% {
+                transform: translateX(0);
+            }
         }
 
         /* Minimalistisches Keypad */
@@ -164,7 +208,9 @@
             transition: opacity 0.5s ease;
         }
 
-        .keypad:hover, .keypad:active, .keypad:focus-within {
+        .keypad:hover,
+        .keypad:active,
+        .keypad:focus-within {
             opacity: 1;
         }
 
@@ -212,14 +258,14 @@
            WOW-ANIMATION KLASSEN (Win State)
            ========================================== */
         .orb.win-anim {
-            animation: none !important; 
+            animation: none !important;
             mix-blend-mode: normal !important;
             color: transparent !important;
             background: radial-gradient(circle, var(--color-target) 0%, var(--color-target) 100%) !important;
-            transition: top 2s cubic-bezier(0.25, 1, 0.5, 1), 
-                        left 2s cubic-bezier(0.25, 1, 0.5, 1), 
-                        transform 3s cubic-bezier(0.25, 1, 0.5, 1) 1.5s,
-                        background 2s ease !important;
+            transition: top 2s cubic-bezier(0.25, 1, 0.5, 1),
+                left 2s cubic-bezier(0.25, 1, 0.5, 1),
+                transform 3s cubic-bezier(0.25, 1, 0.5, 1) 1.5s,
+                background 2s ease !important;
         }
 
         .success-message {
@@ -257,8 +303,10 @@
         /* Lava-Lamp Merge Layer */
         #merge-layer {
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             z-index: 50;
             pointer-events: none;
             filter: url(#goo);
@@ -272,44 +320,101 @@
         }
 
         @keyframes wobble0 {
-            0% { transform: translate(calc(-50% - 25px), calc(-50% + 15px)) scale(1); }
-            100% { transform: translate(calc(-50% + 25px), calc(-50% - 15px)) scale(1.25); }
+            0% {
+                transform: translate(calc(-50% - 25px), calc(-50% + 15px)) scale(1);
+            }
+
+            100% {
+                transform: translate(calc(-50% + 25px), calc(-50% - 15px)) scale(1.25);
+            }
         }
+
         @keyframes wobble1 {
-            0% { transform: translate(calc(-50% + 18px), calc(-50% + 22px)) scale(1.2); }
-            100% { transform: translate(calc(-50% - 18px), calc(-50% - 22px)) scale(0.85); }
+            0% {
+                transform: translate(calc(-50% + 18px), calc(-50% + 22px)) scale(1.2);
+            }
+
+            100% {
+                transform: translate(calc(-50% - 18px), calc(-50% - 22px)) scale(0.85);
+            }
         }
+
         @keyframes wobble2 {
-            0% { transform: translate(calc(-50% - 15px), calc(-50% - 25px)) scale(0.85); }
-            100% { transform: translate(calc(-50% + 15px), calc(-50% + 25px)) scale(1.3); }
+            0% {
+                transform: translate(calc(-50% - 15px), calc(-50% - 25px)) scale(0.85);
+            }
+
+            100% {
+                transform: translate(calc(-50% + 15px), calc(-50% + 25px)) scale(1.3);
+            }
         }
 
         /* Lichtblitz */
         #flash {
             position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background: white;
             opacity: 0;
             z-index: 90;
             pointer-events: none;
             transition: opacity 0.15s ease;
         }
-        #flash.bang { opacity: 1; }
+
+        #flash.bang {
+            opacity: 1;
+        }
 
         /* Screen Shake */
         @keyframes shake {
-            0%, 100% { transform: translate(0, 0); }
-            10% { transform: translate(-5px, 3px); }
-            20% { transform: translate(5px, -3px); }
-            30% { transform: translate(-3px, -5px); }
-            40% { transform: translate(3px, 5px); }
-            50% { transform: translate(-5px, -2px); }
-            60% { transform: translate(5px, 2px); }
-            70% { transform: translate(-2px, 5px); }
-            80% { transform: translate(2px, -5px); }
-            90% { transform: translate(-3px, 3px); }
+
+            0%,
+            100% {
+                transform: translate(0, 0);
+            }
+
+            10% {
+                transform: translate(-5px, 3px);
+            }
+
+            20% {
+                transform: translate(5px, -3px);
+            }
+
+            30% {
+                transform: translate(-3px, -5px);
+            }
+
+            40% {
+                transform: translate(3px, 5px);
+            }
+
+            50% {
+                transform: translate(-5px, -2px);
+            }
+
+            60% {
+                transform: translate(5px, 2px);
+            }
+
+            70% {
+                transform: translate(-2px, 5px);
+            }
+
+            80% {
+                transform: translate(2px, -5px);
+            }
+
+            90% {
+                transform: translate(-3px, 3px);
+            }
         }
-        body.shake { animation: shake 0.5s ease-out; }
+
+        body.shake {
+            animation: shake 0.5s ease-out;
+        }
 
         .particle {
             position: fixed;
@@ -343,9 +448,9 @@
             color: rgba(var(--color-text), 0.7);
             border-color: rgba(var(--color-text), 0.3);
         }
-
     </style>
 </head>
+
 <body>
 
     <div id="ambient-bg"></div>
@@ -365,7 +470,7 @@
     <!-- UI für die Code-Eingabe -->
     <div class="ui-container" id="ui">
         <div class="hex-display" id="hex-display">#_ _ _ _ _ _</div>
-        
+
         <div class="keypad">
             <div class="key" data-key="0">0</div>
             <div class="key" data-key="1">1</div>
@@ -399,9 +504,10 @@
     <svg class="goo-svg">
         <defs>
             <filter id="goo">
-                <feGaussianBlur in="SourceGraphic" stdDeviation="18" result="blur"/>
-                <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9" result="goo"/>
-                <feBlend in="SourceGraphic" in2="goo"/>
+                <feGaussianBlur in="SourceGraphic" stdDeviation="18" result="blur" />
+                <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9"
+                    result="goo" />
+                <feBlend in="SourceGraphic" in2="goo" />
             </filter>
         </defs>
     </svg>
@@ -413,10 +519,10 @@
         /* ==========================================
            LOGIK & INTERAKTION
            ========================================== */
-        
+
         const orbs = document.querySelectorAll('.orb');
         const hint = document.getElementById('hint');
-        
+
         let isWon = false; // Verhindert Bewegung nach Gewinn
         let isPaused = false; // Pause-Zustand für Orb-Animation
 
@@ -493,18 +599,18 @@
 
                 draggedOrbData = data;
                 data.isDragging = true;
-                
+
                 // Für Klick-vs-Drag-Erkennung
                 dragStartX = e.clientX;
                 dragStartY = e.clientY;
                 hasMoved = false;
-                
+
                 // Berechne den Offset, damit das Element beim Greifen nicht zum Cursor springt
                 data.offsetX = data.x - e.clientX;
                 data.offsetY = data.y - e.clientY;
-                
+
                 orb.setPointerCapture(e.pointerId);
-                
+
                 // Deaktiviere sanfte Transitionen fürs flüssige Ziehen
                 orb.style.transition = 'none';
             });
@@ -514,8 +620,8 @@
         window.addEventListener('pointermove', (e) => {
             if (!draggedOrbData || isWon) return;
             // Verhindert Standardverhalten wie Scrollen beim Ziehen
-            e.preventDefault(); 
-            
+            e.preventDefault();
+
             // Überprüfe, ob es ein Drag oder nur ein Klick ist (10px Toleranz für ungenaue Finger auf Touch)
             const dx = e.clientX - dragStartX;
             const dy = e.clientY - dragStartY;
@@ -526,14 +632,14 @@
             // Positioniere mit Offset
             draggedOrbData.x = e.clientX + draggedOrbData.offsetX;
             draggedOrbData.y = e.clientY + draggedOrbData.offsetY;
-            
+
             draggedOrbData.el.style.left = `${draggedOrbData.x}px`;
             draggedOrbData.el.style.top = `${draggedOrbData.y}px`;
         }, { passive: false });
 
         window.addEventListener('pointerup', (e) => {
             if (!draggedOrbData || isWon) return;
-            
+
             const orb = draggedOrbData.el;
 
             // Wenn es nur ein kurzer Klick ohne signifikante Bewegung war: Zustand umschalten (An/Aus)
@@ -547,8 +653,8 @@
                     }
                 }
             } else {
-                 // Wenn gezogen, stelle sicher, dass es eingeschaltet bleibt (besseres Feedback beim Mischen)
-                 orb.classList.add(orb.dataset.color);
+                // Wenn gezogen, stelle sicher, dass es eingeschaltet bleibt (besseres Feedback beim Mischen)
+                orb.classList.add(orb.dataset.color);
             }
 
             // Transitionen reaktivieren, damit Überblendungen weich bleiben
@@ -557,7 +663,7 @@
                 draggedOrbData.wasJustDragged = true;
             }
             orb.releasePointerCapture(e.pointerId);
-            
+
             draggedOrbData.isDragging = false;
             draggedOrbData = null;
         });
@@ -579,7 +685,7 @@
                     data.baseY = data.y;
                     data.displayX = data.x;
                     data.displayY = data.y;
-                // Phasen synchronisieren damit kein Sprung entsteht
+                    // Phasen synchronisieren damit kein Sprung entsteht
                     data.phaseX1 = -data.freqX1 * driftTime;
                     data.phaseY1 = -data.freqY1 * driftTime;
                     data.phaseX2 = -data.freqX2 * driftTime;
@@ -649,7 +755,7 @@
         /* ==========================================
            RÄTSEL-LOGIK (Hex Code Eingabe)
            ========================================== */
-        
+
         let currentInput = "";
         const targetCode = "8A2BE2"; // Die Lösung des Rätsels
         const display = document.getElementById('hex-display');
@@ -702,7 +808,7 @@
         /* ==========================================
            DAS WOW-ERLEBNIS (Gewonnen)
            ========================================== */
-        
+
         const wait = ms => new Promise(r => setTimeout(r, ms));
 
         async function triggerWowEffect() {
@@ -843,4 +949,5 @@
 
     </script>
 </body>
+
 </html>
