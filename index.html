@@ -742,12 +742,9 @@
                     + Math.sin(t * data.breatheFreq1 + data.breathePhase1) * 0.025
                     + Math.sin(t * data.breatheFreq2 + data.breathePhase2) * 0.015;
 
-                // Subtile Rotation
-                const rot = Math.sin(t * data.rotFreq + data.rotPhase) * data.rotAmp;
-
                 const hw = data.el.offsetWidth / 2;
                 const hh = data.el.offsetHeight / 2;
-                data.el.style.transform = `translate3d(${(data.x - hw).toFixed(1)}px, ${(data.y - hh).toFixed(1)}px, 0) scale(${breathe.toFixed(4)}) rotate(${rot.toFixed(2)}deg)`;
+                data.el.style.transform = `translate3d(${(data.x - hw).toFixed(1)}px, ${(data.y - hh).toFixed(1)}px, 0) scale(${breathe.toFixed(4)})`;
             });
 
             requestAnimationFrame(animateOrbs);
