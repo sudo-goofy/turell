@@ -100,6 +100,7 @@
             cursor: grab;
             z-index: 5;
             will-change: transform;
+            contain: layout style;
         }
 
         .orb:active {
@@ -250,8 +251,7 @@
             height: var(--key-size);
             border-radius: var(--key-radius);
             border: 1px solid rgba(var(--color-text), 0.1);
-            background: rgba(var(--color-text), 0.02);
-            backdrop-filter: blur(10px);
+            background: rgba(var(--color-text), 0.05);
             color: white;
             font-size: 1.44rem;
             font-weight: 200;
@@ -259,7 +259,7 @@
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: background 0.2s ease, transform 0.2s ease;
         }
 
         .key:active {
@@ -341,43 +341,13 @@
             z-index: 50;
             pointer-events: none;
             filter: url(#goo);
+            isolation: isolate;
         }
 
         .merge-blob {
             position: absolute;
             border-radius: 50%;
-            transform: translate(-50%, -50%);
-            will-change: transform, opacity;
-        }
-
-        @keyframes wobble0 {
-            0% {
-                transform: translate(calc(-50% - 25px), calc(-50% + 15px)) scale(1.0);
-            }
-
-            100% {
-                transform: translate(calc(-50% + 25px), calc(-50% - 15px)) scale(1.15);
-            }
-        }
-
-        @keyframes wobble1 {
-            0% {
-                transform: translate(calc(-50% + 18px), calc(-50% + 22px)) scale(1.1);
-            }
-
-            100% {
-                transform: translate(calc(-50% - 18px), calc(-50% - 22px)) scale(0.9);
-            }
-        }
-
-        @keyframes wobble2 {
-            0% {
-                transform: translate(calc(-50% - 15px), calc(-50% - 25px)) scale(0.9);
-            }
-
-            100% {
-                transform: translate(calc(-50% + 15px), calc(-50% + 25px)) scale(1.15);
-            }
+            will-change: transform;
         }
 
         /* Lichtblitz */
@@ -559,8 +529,8 @@
     <svg class="goo-svg">
         <defs>
             <filter id="goo">
-                <feGaussianBlur in="SourceGraphic" stdDeviation="18" result="blur" />
-                <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9"
+                <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur" />
+                <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7"
                     result="goo" />
                 <feBlend in="SourceGraphic" in2="goo" />
             </filter>
@@ -1050,13 +1020,14 @@
             const blobs = orbData.slice(0, 3).map((data, i) => {
                 const blob = document.createElement('div');
                 blob.className = 'merge-blob';
-                blob.style.left = cx + 'px';
-                blob.style.top = cy + 'px';
+                // Zentriere mit margin statt translate(-50%,-50%), damit transforms GPU-only bleiben
+                blob.style.left = (cx - blobSize / 2) + 'px';
+                blob.style.top = (cy - blobSize / 2) + 'px';
                 blob.style.width = blobSize + 'px';
                 blob.style.height = blobSize + 'px';
                 blob.style.background = orbColors[i];
                 // Startposition relativ zum Zentrum, als translate3d (GPU)
-                blob.style.transform = `translate(-50%, -50%) translate3d(${data.x - cx}px, ${data.y - cy}px, 0)`;
+                blob.style.transform = `translate3d(${data.x - cx}px, ${data.y - cy}px, 0)`;
                 mergeLayer.appendChild(blob);
                 return blob;
             });
@@ -1066,36 +1037,83 @@
             // ── Phase 1: Annäherung ──
             for (let i = 0; i < blobs.length; i++) {
                 blobs[i].style.transition = 'transform 2.5s cubic-bezier(0.25, 1, 0.5, 1)';
-                blobs[i].style.transform = 'translate(-50%, -50%) translate3d(0, 0, 0)';
+                blobs[i].style.transform = 'translate3d(0, 0, 0)';
                 if (i < blobs.length - 1) await wait(500);
             }
 
-            // ── Phase 2: Lava-Lamp Verschmelzung ──
-            await wait(2500);
-            blobs.forEach((blob, i) => {
-                blob.style.transition = 'none';
-                blob.style.animation = `wobble${i} 1s ease-in-out infinite alternate`;
-            });
+            // ── Phase 2: Organische Verschmelzung ──
+            // Wobble startet, bevor die Annäherung ganz endet → nahtloser Übergang
+            await wait(1600);
 
-            await wait(600);
+            // JS-gesteuerte Wobble-Animation mit sanftem Ein-/Ausblenden
+            const wobbleAmps = [
+                { x: 25, y: 15, s: 0.08 },
+                { x: 18, y: 22, s: 0.10 },
+                { x: 15, y: 25, s: 0.08 }
+            ];
+            const wobblePhases = [
+                { px: 0,   py: 2.1, ps: 4.2 },
+                { px: 2.1, py: 4.2, ps: 0   },
+                { px: 4.2, py: 0,   ps: 2.1 }
+            ];
+            let wobbleActive = true;
+            const wobbleRampIn = performance.now();
+            let wobbleRampOut = null;
+
+            function animateWobble(now) {
+                if (!wobbleActive) return;
+
+                // Intensität: quadratisch einblenden (1.5s), quadratisch ausblenden (0.7s)
+                let intensity;
+                if (wobbleRampOut) {
+                    const p = Math.min((now - wobbleRampOut) / 700, 1);
+                    intensity = (1 - p) * (1 - p);
+                } else {
+                    const p = Math.min((now - wobbleRampIn) / 1500, 1);
+                    intensity = p * p;
+                }
+
+                const t = now / 1000;
+                blobs.forEach((blob, i) => {
+                    const a = wobbleAmps[i];
+                    const ph = wobblePhases[i];
+                    // Zwei überlagerte Frequenzen für organische Bewegung
+                    const dx = (Math.sin(t * 2.2 + ph.px) * a.x
+                              + Math.sin(t * 3.7 + ph.px + 1) * a.x * 0.3) * intensity;
+                    const dy = (Math.cos(t * 1.9 + ph.py) * a.y
+                              + Math.cos(t * 3.3 + ph.py + 1) * a.y * 0.3) * intensity;
+                    const ds = 1 + Math.sin(t * 2.8 + ph.ps) * a.s * intensity;
+                    blob.style.transform = `translate3d(${dx.toFixed(1)}px, ${dy.toFixed(1)}px, 0) scale(${ds.toFixed(4)})`;
+                });
+
+                requestAnimationFrame(animateWobble);
+            }
+
+            blobs.forEach(blob => { blob.style.transition = 'none'; });
+            requestAnimationFrame(animateWobble);
+
+            // Farbverschmelzung etwas versetzt starten
+            await wait(800);
             blobs.forEach(blob => {
                 blob.style.transition = 'background 2s ease';
                 blob.style.background = 'var(--color-target)';
             });
 
             // ── Phase 3: Kompression ──
-            await wait(2100);
-            // Wobble sanft auslaufen lassen
+            await wait(2000);
+            // Wobble sanft ausblenden (700ms ease-out)
+            wobbleRampOut = performance.now();
+            await wait(700);
+            wobbleActive = false;
+
+            // Sanft zur Kompression übergehen
             blobs.forEach(blob => {
-                blob.style.animation = 'none';
-                // Kurz auf Ausgangsposition zurücksetzen (kein Sprung)
-                blob.style.transform = 'translate(-50%, -50%) scale(1)';
+                blob.style.transform = 'translate3d(0, 0, 0) scale(1)';
             });
-            // Ein Frame warten, damit der Browser die neue Basis registriert
             await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
             blobs.forEach(blob => {
                 blob.style.transition = 'transform 1.8s cubic-bezier(0.4, 0, 0.2, 1)';
-                blob.style.transform = 'translate(-50%, -50%) scale(0.12)';
+                blob.style.transform = 'translate3d(0, 0, 0) scale(0.12)';
             });
 
             // ── Phase 4: EXPLOSION ──
@@ -1109,13 +1127,13 @@
 
             document.body.classList.add('shake');
             if (navigator.vibrate) navigator.vibrate([100, 50, 300, 50, 100]);
-            spawnParticles(60);
+            spawnParticles(35);
 
             mergeLayer.style.filter = 'none';
             const expandScale = Math.max(window.innerWidth, window.innerHeight) * 3 / blobSize;
             blobs.forEach(blob => {
                 blob.style.transition = 'transform 3s cubic-bezier(0.25, 1, 0.5, 1)';
-                blob.style.transform = `translate(-50%, -50%) scale(${expandScale})`;
+                blob.style.transform = `translate3d(0, 0, 0) scale(${expandScale})`;
             });
 
             await wait(500);
@@ -1136,24 +1154,24 @@
             for (let i = 0; i < count; i++) {
                 const p = document.createElement('div');
                 p.className = 'particle';
-                p.style.left = cx + 'px';
-                p.style.top = cy + 'px';
                 const color = colors[Math.floor(Math.random() * colors.length)];
                 p.style.background = color;
                 const size = 3 + Math.random() * 7;
                 p.style.width = size + 'px';
                 p.style.height = size + 'px';
+                p.style.left = cx + 'px';
+                p.style.top = cy + 'px';
                 document.body.appendChild(p);
 
                 const angle = Math.random() * Math.PI * 2;
                 const velocity = 300 + Math.random() * 700;
                 const dx = Math.cos(angle) * velocity;
                 const dy = Math.sin(angle) * velocity;
-                const duration = 1500 + Math.random() * 2500;
+                const duration = 1200 + Math.random() * 2000;
 
                 p.animate([
                     { transform: 'translate(-50%,-50%) scale(1)', opacity: 1 },
-                    { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0)`, opacity: 0 }
+                    { transform: `translate(${dx - size / 2}px, ${dy - size / 2}px) scale(0)`, opacity: 0 }
                 ], { duration, easing: 'cubic-bezier(0.25, 1, 0.5, 1)', fill: 'forwards' });
 
                 setTimeout(() => p.remove(), duration);
