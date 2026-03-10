@@ -17,7 +17,7 @@
             --color-r: 255, 0, 0;
             --color-g: 0, 255, 0;
             --color-b: 0, 0, 255;
-            --color-target: #8A2BE2;
+            --color-target: #C0DE67;
             --color-text: 255, 255, 255;
             --orb-size: 48.6vmin;
             --orb-max: 648px;
@@ -486,12 +486,12 @@
     <div id="hint">BERÜHREN UND ERFORSCHEN</div>
 
     <!-- Die 3 Lichtkreise -->
-    <!-- R = 138 (Dec) -->
-    <div class="orb" id="orb-r" data-color="active-r">138</div>
-    <!-- G = 43 (Dec) -> 00101011 (Bin) -->
-    <div class="orb" id="orb-g" data-color="active-g">00101011</div>
-    <!-- B = 226 (Dec) -->
-    <div class="orb" id="orb-b" data-color="active-b">226</div>
+    <!-- R = 192 (Dec) -->
+    <div class="orb" id="orb-r" data-color="active-r">192</div>
+    <!-- G = 222 (Dec) -> 11011110 (Bin) -->
+    <div class="orb" id="orb-g" data-color="active-g">11011110</div>
+    <!-- B = 103 (Dec) -->
+    <div class="orb" id="orb-b" data-color="active-b">103</div>
 
     <!-- Hint-Orb -->
     <!--div class="orb hint-orb" id="orb-hint" data-color="active-hint">Farben des Lichts vereint in einem Code</div-->
@@ -792,7 +792,7 @@
            ========================================== */
 
         let currentInput = "";
-        const targetCode = "8A2BE2"; // Die Lösung des Rätsels
+        const targetCode = "C0DE67"; // Die Lösung des Rätsels
         const display = document.getElementById('hex-display');
 
         // Audio-Kontext für Tastentöne
@@ -980,7 +980,7 @@
 
             await wait(1000);
             const successEl = document.getElementById('success');
-            successEl.innerHTML = `<div class="title">Spektrum entschlüsselt</div><div class="subtitle">Wahrheits-Code #8A2BE2 akzeptiert</div>`;
+            successEl.innerHTML = `<div class="title">Spektrum entschlüsselt</div><div class="subtitle">Wahrheits-Code #C0DE67 akzeptiert</div>`;
             successEl.classList.add('show');
         }
 
