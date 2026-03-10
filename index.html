@@ -477,6 +477,32 @@
             color: rgba(var(--color-text), 0.7);
             border-color: rgba(var(--color-text), 0.3);
         }
+
+        /* Fullscreen Button */
+        #fs-btn {
+            position: absolute;
+            bottom: 2vh;
+            right: calc(2vh + 52px);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid rgba(var(--color-text), 0.1);
+            background: rgba(var(--color-text), 0.02);
+            backdrop-filter: blur(10px);
+            color: rgba(var(--color-text), 0.3);
+            font-size: 1.1rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 20;
+            transition: all 0.3s ease;
+        }
+
+        #fs-btn:hover {
+            color: rgba(var(--color-text), 0.7);
+            border-color: rgba(var(--color-text), 0.3);
+        }
     </style>
 </head>
 
@@ -543,6 +569,9 @@
 
     <!-- Pause/Play Button -->
     <div id="pause-btn">&#9646;&#9646;</div>
+
+    <!-- Fullscreen Button -->
+    <div id="fs-btn">&#x26F6;</div>
 
     <script>
         /* ==========================================
@@ -866,6 +895,19 @@
 
         // Pause-Button
         document.getElementById('pause-btn').addEventListener('click', togglePause);
+
+        // Fullscreen
+        const fsBtn = document.getElementById('fs-btn');
+        fsBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else {
+                document.exitFullscreen();
+            }
+        });
+        document.addEventListener('fullscreenchange', () => {
+            fsBtn.innerHTML = document.fullscreenElement ? '&#x29C9;' : '&#x26F6;';
+        });
 
         function checkCode() {
             if (currentInput === targetCode) {
