@@ -865,6 +865,97 @@
             }
         }
 
+        function playMergeSound() {
+            ensureAudio();
+            if (!audioCtx) return;
+            const t = audioCtx.currentTime;
+
+            // ── Layer 1: Tiefer Drone (aufsteigend) ──
+            const drone = audioCtx.createOscillator();
+            const droneGain = audioCtx.createGain();
+            drone.type = 'sine';
+            drone.frequency.setValueAtTime(55, t);
+            drone.frequency.exponentialRampToValueAtTime(110, t + 5);
+            drone.frequency.exponentialRampToValueAtTime(220, t + 7);
+            droneGain.gain.setValueAtTime(0, t);
+            droneGain.gain.linearRampToValueAtTime(0.15, t + 1);
+            droneGain.gain.setValueAtTime(0.15, t + 6);
+            droneGain.gain.linearRampToValueAtTime(0, t + 8);
+            drone.connect(droneGain).connect(audioCtx.destination);
+            drone.start(t);
+            drone.stop(t + 8);
+
+            // ── Layer 2: Shimmer (hoher Oberton, pulsierend) ──
+            const shimmer = audioCtx.createOscillator();
+            const shimmerGain = audioCtx.createGain();
+            const shimmerLfo = audioCtx.createOscillator();
+            const lfoGain = audioCtx.createGain();
+            shimmer.type = 'sine';
+            shimmer.frequency.setValueAtTime(880, t);
+            shimmer.frequency.exponentialRampToValueAtTime(1760, t + 7);
+            shimmerGain.gain.setValueAtTime(0, t);
+            shimmerGain.gain.linearRampToValueAtTime(0.04, t + 2);
+            shimmerGain.gain.setValueAtTime(0.04, t + 6);
+            shimmerGain.gain.linearRampToValueAtTime(0, t + 8);
+            shimmerLfo.frequency.setValueAtTime(3, t);
+            shimmerLfo.frequency.linearRampToValueAtTime(8, t + 7);
+            lfoGain.gain.setValueAtTime(0.03, t);
+            shimmerLfo.connect(lfoGain).connect(shimmerGain.gain);
+            shimmer.connect(shimmerGain).connect(audioCtx.destination);
+            shimmerLfo.start(t);
+            shimmer.start(t);
+            shimmerLfo.stop(t + 8);
+            shimmer.stop(t + 8);
+
+            // ── Layer 3: Whoosh (Noise-Sweep bei Verschmelzung) ──
+            const bufLen = audioCtx.sampleRate * 3;
+            const noiseBuf = audioCtx.createBuffer(1, bufLen, audioCtx.sampleRate);
+            const noiseData = noiseBuf.getChannelData(0);
+            for (let i = 0; i < bufLen; i++) noiseData[i] = Math.random() * 2 - 1;
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = noiseBuf;
+            const noiseFilter = audioCtx.createBiquadFilter();
+            noiseFilter.type = 'bandpass';
+            noiseFilter.frequency.setValueAtTime(200, t + 4);
+            noiseFilter.frequency.exponentialRampToValueAtTime(4000, t + 6.5);
+            noiseFilter.Q.setValueAtTime(2, t + 4);
+            const noiseGain = audioCtx.createGain();
+            noiseGain.gain.setValueAtTime(0, t);
+            noiseGain.gain.setValueAtTime(0, t + 4);
+            noiseGain.gain.linearRampToValueAtTime(0.12, t + 5.5);
+            noiseGain.gain.linearRampToValueAtTime(0, t + 7);
+            noise.connect(noiseFilter).connect(noiseGain).connect(audioCtx.destination);
+            noise.start(t + 4);
+            noise.stop(t + 7);
+
+            // ── Layer 4: Impact (Explosion) ──
+            const impact = audioCtx.createOscillator();
+            const impactGain = audioCtx.createGain();
+            impact.type = 'sine';
+            impact.frequency.setValueAtTime(120, t + 7.1);
+            impact.frequency.exponentialRampToValueAtTime(30, t + 8.5);
+            impactGain.gain.setValueAtTime(0.3, t + 7.1);
+            impactGain.gain.exponentialRampToValueAtTime(0.01, t + 8.5);
+            impact.connect(impactGain).connect(audioCtx.destination);
+            impact.start(t + 7.1);
+            impact.stop(t + 8.5);
+
+            // ── Layer 5: Nachklang (ätherischer Akkord) ──
+            [261.6, 329.6, 392, 523.2].forEach(freq => {
+                const osc = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, t + 7.3);
+                g.gain.setValueAtTime(0, t + 7.3);
+                g.gain.linearRampToValueAtTime(0.04, t + 8);
+                g.gain.setValueAtTime(0.04, t + 9);
+                g.gain.linearRampToValueAtTime(0, t + 12);
+                osc.connect(g).connect(audioCtx.destination);
+                osc.start(t + 7.3);
+                osc.stop(t + 12);
+            });
+        }
+
         function updateDisplay() {
             // Formatiert den String so: # 8 A 2 _ _ _
             let formatted = currentInput.padEnd(6, '_').split('').join(' ');
@@ -934,6 +1025,7 @@
 
         async function triggerWowEffect() {
             isWon = true;
+            playMergeSound();
 
             document.getElementById('ui').style.pointerEvents = 'none';
             document.getElementById('ui').style.opacity = '0';
