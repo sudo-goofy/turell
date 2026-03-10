@@ -34,6 +34,8 @@
             box-sizing: border-box;
             user-select: none;
             -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body,
@@ -576,6 +578,9 @@
            LOGIK & INTERAKTION
            ========================================== */
 
+        // Verhindere das Kontextmenü bei langem Drücken (Android / Starboard)
+        document.addEventListener('contextmenu', e => e.preventDefault());
+
         const orbs = document.querySelectorAll('.orb');
         const hint = document.getElementById('hint');
 
@@ -930,27 +935,27 @@
             const impact = audioCtx.createOscillator();
             const impactGain = audioCtx.createGain();
             impact.type = 'sine';
-            impact.frequency.setValueAtTime(120, t + 7.1);
-            impact.frequency.exponentialRampToValueAtTime(30, t + 8.5);
-            impactGain.gain.setValueAtTime(0.3, t + 7.1);
-            impactGain.gain.exponentialRampToValueAtTime(0.01, t + 8.5);
+            impact.frequency.setValueAtTime(120, t + 6.4);
+            impact.frequency.exponentialRampToValueAtTime(30, t + 7.8);
+            impactGain.gain.setValueAtTime(0.3, t + 6.4);
+            impactGain.gain.exponentialRampToValueAtTime(0.01, t + 7.8);
             impact.connect(impactGain).connect(audioCtx.destination);
-            impact.start(t + 7.1);
-            impact.stop(t + 8.5);
+            impact.start(t + 6.4);
+            impact.stop(t + 7.8);
 
             // ── Layer 5: Nachklang (ätherischer Akkord) ──
             [261.6, 329.6, 392, 523.2].forEach(freq => {
                 const osc = audioCtx.createOscillator();
                 const g = audioCtx.createGain();
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(freq, t + 10);
-                g.gain.setValueAtTime(0, t + 10);
-                g.gain.linearRampToValueAtTime(0.04, t + 11);
-                g.gain.setValueAtTime(0.04, t + 12);
-                g.gain.linearRampToValueAtTime(0, t + 15);
+                osc.frequency.setValueAtTime(freq, t + 8.8);
+                g.gain.setValueAtTime(0, t + 8.8);
+                g.gain.linearRampToValueAtTime(0.04, t + 9.8);
+                g.gain.setValueAtTime(0.04, t + 10.8);
+                g.gain.linearRampToValueAtTime(0, t + 13.8);
                 osc.connect(g).connect(audioCtx.destination);
-                osc.start(t + 10);
-                osc.stop(t + 15);
+                osc.start(t + 8.8);
+                osc.stop(t + 13.8);
             });
         }
 
