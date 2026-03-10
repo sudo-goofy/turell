@@ -826,11 +826,14 @@
 
         // Audio-Kontext für Tastentöne
         let audioCtx = null;
-        document.addEventListener('pointerdown', () => {
+        function ensureAudio() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }, { once: true });
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+        document.addEventListener('pointerdown', ensureAudio, { once: true });
 
         function playKeySound(type) {
+            ensureAudio();
             if (!audioCtx) return;
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
