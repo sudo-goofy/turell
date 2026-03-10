@@ -943,14 +943,14 @@
                 const osc = audioCtx.createOscillator();
                 const g = audioCtx.createGain();
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(freq, t + 7.3);
-                g.gain.setValueAtTime(0, t + 7.3);
-                g.gain.linearRampToValueAtTime(0.04, t + 8);
-                g.gain.setValueAtTime(0.04, t + 9);
-                g.gain.linearRampToValueAtTime(0, t + 12);
+                osc.frequency.setValueAtTime(freq, t + 10);
+                g.gain.setValueAtTime(0, t + 10);
+                g.gain.linearRampToValueAtTime(0.04, t + 11);
+                g.gain.setValueAtTime(0.04, t + 12);
+                g.gain.linearRampToValueAtTime(0, t + 15);
                 osc.connect(g).connect(audioCtx.destination);
-                osc.start(t + 7.3);
-                osc.stop(t + 12);
+                osc.start(t + 10);
+                osc.stop(t + 15);
             });
         }
 
